@@ -78,7 +78,7 @@ th, td { padding: 8px 9px; border-bottom: 1px solid #e8edf3; text-align: left; w
 th { background: #f8fafc; position: sticky; top: 0; z-index: 1; color: #4b596b; font-weight: 650; }
 tr:hover td { background: #f9fbff; }
 .rules { white-space: pre-wrap; font-size: 12px; line-height: 1.5; color: #334155; }
-.rule-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.rule-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .rule-block { border: 1px solid var(--line); border-radius: 6px; padding: 12px; background: #fbfcfe; }
 .rule-block h3 { font-size: 13px; margin: 0 0 8px; }
 @media (max-width: 1100px) {
@@ -172,45 +172,122 @@ const columns = {
 };
 
 const RULE_GROUPS = [
-  ["Signal", [
-    "Runs 2 seconds after each completed M5 candle.",
-    "Uses only completed regular-session M5 candles.",
-    "Prior M5 candle must be green: close > open.",
-    "Prior M5 close must be above EMA9.",
-    "Relative volume must be >= 1.0.",
-    "FTFC score must be >= 4."
+  ["Plain-English Summary", [
+    "The strategy is a long-only momentum breakout system for leveraged ETFs.",
+    "It watches five-minute candles during the regular stock-market session.",
+    "After a five-minute candle fully closes, it decides whether that completed candle shows enough bullish momentum.",
+    "If the setup is valid, it does not buy immediately at market. It places a paper buy stop-limit at the high of that completed candle.",
+    "The trade only starts if price breaks above that high. This tries to avoid entering if momentum immediately fades.",
+    "Once in a trade, the stop, target, and time exit are known in advance."
   ]],
-  ["FTFC / Filters", [
-    "FTFC checks: M5 close above day open, VWAP, EMA30, EMA9.",
-    "Completed H1 context must score at least 2 bullish checks.",
-    "Prior green-run must be <= 4.",
-    "Prior M5 close must be <= 5% above day open.",
-    "M5 candle risk must be <= 2% of entry."
+  ["Timeframes Used", [
+    "M5 means a five-minute candle. Example: 9:30 to 9:35 ET is one M5 candle.",
+    "H1 means a one-hour candle. The strategy uses completed H1 context to avoid taking weak M5 breakouts.",
+    "The active candle is ignored for signal creation because it can still change before it closes.",
+    "Signal checks happen about 2 seconds after each M5 close, such as 9:35:02, 9:40:02, and 9:45:02 ET.",
+    "Regular-session data is used. The strategy is designed around the normal US market session, not premarket or after-hours candles."
   ]],
-  ["Entry", [
-    "Create a paper buy stop-limit order at the prior completed M5 high.",
-    "Order expires after 5 minutes if not triggered.",
-    "Paper fill price is the stop-limit price when price trades through it.",
-    "When too many signals appear, rank by entry_score and keep the best available slots."
+  ["Universe", [
+    "The current leveraged ETF universe is BOIL, KOLD, LABD, LABU, MSTU, MSTZ, NVDL, SOXL, SOXS, SPXU, SQQQ, TQQQ, TSLL, and UPRO.",
+    "These are volatile products. The strategy uses them because small intraday moves can create meaningful portfolio movement.",
+    "The strategy is long-only. For bearish market expressions it uses inverse/short leveraged ETFs such as SQQQ, SOXS, SPXU, LABD, MSTZ, or KOLD instead of short-selling stock.",
+    "Because these are leveraged instruments, live results can differ from backtest results due to spread, liquidity, slippage, halts, or fast price movement."
   ]],
-  ["Allocation", [
-    "Initial paper capital is $10,000 unless overridden.",
+  ["Core M5 Signal Rules", [
+    "The prior completed M5 candle must be green. Green means close is greater than open.",
+    "The prior completed M5 close must be above EMA9. EMA9 is the 9-period exponential moving average on the five-minute chart.",
+    "Relative volume must be at least 1.0. Relative volume compares current candle volume to typical volume for that same time slot. A value above 1.0 means volume is stronger than normal.",
+    "The candle high must be greater than the candle low so the candle has a valid range.",
+    "The candle risk must not be too wide. Risk per share is candle high minus candle low.",
+    "Risk per share divided by entry price must be <= 2%. This avoids very wide candles where the stop is too far away."
+  ]],
+  ["FTFC Explained", [
+    "FTFC means Full Time Frame Continuity. In simple terms, it asks whether multiple reference points agree with the bullish direction.",
+    "This implementation uses a score, not a perfect all-or-nothing full alignment rule.",
+    "The M5 close gets 1 point if it is above the current day open.",
+    "The M5 close gets 1 point if it is above VWAP. VWAP is the volume-weighted average price for the day.",
+    "The M5 close gets 1 point if it is above EMA30 on the M5 chart.",
+    "The M5 close gets 1 point if it is above EMA9 on the M5 chart.",
+    "The setup gets 1 more point if completed H1 context is bullish enough.",
+    "A trade signal requires FTFC score >= 4 out of 5."
+  ]],
+  ["H1 Bullish Context", [
+    "The strategy looks at the most recently completed H1 candle context.",
+    "The H1 context gets 1 bullish point if the H1 candle is green.",
+    "It gets 1 bullish point if the H1 close is above the H1 day open.",
+    "It gets 1 bullish point if the H1 close is above H1 VWAP.",
+    "The H1 context is considered bullish enough if at least 2 of those 3 checks are true.",
+    "This H1 check is then added into the FTFC score as one possible point."
+  ]],
+  ["Extension Filters", [
+    "The strategy tries to avoid buying after a move is already too stretched.",
+    "Prior green-run must be <= 4. This means the setup is skipped if the symbol already had more than 4 consecutive green M5 candles before the signal candle.",
+    "Prior M5 close must not be more than 5% above the day open.",
+    "These filters are meant to avoid buying when the move may have no fuel left.",
+    "The filters do not guarantee safety. They only reduce some extended entries."
+  ]],
+  ["Entry Order", [
+    "When a valid signal appears, the paper bot creates a buy stop-limit order.",
+    "The entry stop-limit price is the high of the prior completed M5 candle.",
+    "Example: if the completed M5 candle high is 16.25, the paper buy stop-limit is 16.25.",
+    "The bot does not mark the trade open just because a signal exists. Price must trade through the entry level.",
+    "The paper order expires after 5 minutes if it does not trigger.",
+    "When the order triggers, the paper ledger uses the stop-limit price as the fill price.",
+    "This is intended to mimic a resting buy stop-limit order, not a market order placed after the fact."
+  ]],
+  ["Signal Ranking", [
+    "Sometimes more than two symbols generate a signal at the same time.",
+    "The strategy only wants two active slots, so it ranks signals and keeps the best available candidates.",
+    "The ranking score rewards higher FTFC score.",
+    "It rewards stronger relative volume, capped so extreme volume does not dominate everything.",
+    "It penalizes wider risk candles.",
+    "It penalizes longer prior green-runs.",
+    "It penalizes entries that are already far above the day open.",
+    "The same ranking logic is used in the backtest and live paper recorder for consistency."
+  ]],
+  ["Portfolio Allocation", [
+    "Default starting paper capital is $10,000.",
     "Max gross exposure is 100% of current paper equity.",
-    "Fixed-slot allocation uses 2 slots.",
-    "Each new trade targets about 50% of current paper equity.",
-    "If both slots are full, no new entry orders are kept."
+    "The fixed-slot model uses 2 slots.",
+    "Each trade targets about 50% of current equity when compounding is enabled.",
+    "Example: with $10,000 equity, each slot targets about $5,000.",
+    "If equity grows to $12,000, each compounding slot targets about $6,000.",
+    "If both slots are already open, new signals are ignored until a slot is free.",
+    "The non-compounding backtest keeps the trade amount fixed instead of increasing position size as equity grows."
   ]],
-  ["Exit", [
-    "Stop loss = prior completed M5 low.",
-    "Target = 1.5R by default.",
-    "R = entry price - stop price.",
-    "Target and stop are modeled as pre-planned paper OCO exits.",
-    "If neither target nor stop is reached within 15 minutes, exit reason is time."
+  ["Stop, Target, And R", [
+    "Stop loss is the low of the prior completed M5 candle.",
+    "Entry is the high of the prior completed M5 candle.",
+    "R means the dollar/share risk between entry and stop.",
+    "Formula: R = entry price - stop price.",
+    "Target is 1.5R by default.",
+    "Formula: target = entry + 1.5 * R.",
+    "Example: entry 16.25, stop 16.05, R = 0.20, target = 16.55."
+  ]],
+  ["Exit Order Behavior", [
+    "After entry, the stop and target are treated as a pre-planned paper OCO.",
+    "OCO means one-cancels-other: if target hits, stop is canceled; if stop hits, target is canceled.",
+    "If price touches the stop first, exit reason is stop.",
+    "If price touches the target first, exit reason is target.",
+    "If neither target nor stop is reached within 15 minutes, the trade exits by time.",
+    "Near end of day, open trades can be closed with end-of-day exit handling.",
+    "The fast paper monitor checks pending entries and open exits every few seconds between M5 signal cycles."
+  ]],
+  ["Backtest Assumptions", [
+    "Backtest uses historical M5 bars from Schwab/cached files.",
+    "Entry is simulated when a later M5 candle trades through the prior candle high.",
+    "Stop and target are simulated using candle high/low ranges.",
+    "If both stop and target are inside the same candle range, the conservative order in the code checks stop first.",
+    "The backtest does not perfectly know tick-by-tick order inside each M5 candle.",
+    "Backtest does not fully model spread, partial fills, order queue, outages, or broker routing latency.",
+    "Live paper tracking may differ because it reads current quotes and newly available bars in real time."
   ]],
   ["Paper Trading Note", [
-    "This dashboard and recorder do not place real Schwab orders.",
-    "They mimic stop-limit entries and OCO exits using Schwab market data.",
-    "The fast order monitor checks pending entries and open exits between M5 signal cycles."
+    "The live recorder and this dashboard do not place real Schwab trades.",
+    "They are designed to collect evidence before any real automation is considered.",
+    "A real trading bot should submit broker-native entry orders and broker-native OCO exits whenever possible.",
+    "Do not assume paper fills will exactly match real fills.",
+    "The dashboard is educational/research tooling, not financial advice."
   ]]
 ];
 
