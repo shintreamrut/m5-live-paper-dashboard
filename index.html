@@ -77,10 +77,13 @@ table { border-collapse: collapse; width: 100%; font-size: 12px; min-width: 900p
 th, td { padding: 8px 9px; border-bottom: 1px solid #e8edf3; text-align: left; white-space: nowrap; }
 th { background: #f8fafc; position: sticky; top: 0; z-index: 1; color: #4b596b; font-weight: 650; }
 tr:hover td { background: #f9fbff; }
-.rules { white-space: pre-wrap; font-size: 12px; line-height: 1.45; color: #334155; max-height: 360px; overflow: auto; }
+.rules { white-space: pre-wrap; font-size: 12px; line-height: 1.5; color: #334155; }
+.rule-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.rule-block { border: 1px solid var(--line); border-radius: 6px; padding: 12px; background: #fbfcfe; }
+.rule-block h3 { font-size: 13px; margin: 0 0 8px; }
 @media (max-width: 1100px) {
   .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .main, .two { grid-template-columns: 1fr; }
+  .main, .two, .rule-grid { grid-template-columns: 1fr; }
   .topbar { align-items: flex-start; flex-direction: column; }
 }
 </style>
@@ -98,7 +101,8 @@ tr:hover td { background: #f9fbff; }
 <main class="wrap">
   <div class="tabs page-tabs">
     <button data-page="livePage" class="active">Live Monitor</button>
-    <button data-page="backtestPage">Backtest Results</button>
+    <button data-page="compoundingPage">Compounding Backtest</button>
+    <button data-page="nonCompoundingPage">Non-Compounding Backtest</button>
   </div>
   <section id="livePage" class="page active">
   <section class="grid metrics" id="metrics"></section>
@@ -125,43 +129,33 @@ tr:hover td { background: #f9fbff; }
       <button data-tab="closed">Recent Closed</button>
       <button data-tab="signals">Recent Signals</button>
       <button data-tab="quotes">Quotes</button>
-      <button data-tab="rules">Rules</button>
     </div>
     <div id="tabBody"></div>
   </section>
+  <section class="panel tables">
+    <h2>Entry / Exit Rules</h2>
+    <div id="rulesWidget"></div>
   </section>
-  <section id="backtestPage" class="page">
-    <section class="grid metrics" id="backtestMetrics"></section>
+  </section>
+  <section id="compoundingPage" class="page">
+    <section class="grid metrics" id="compoundMetrics"></section>
+    <section class="grid main"><div class="panel"><h2>$10k Compounding Equity Curve</h2><canvas id="compoundBacktestChart" class="chart"></canvas></div></section>
     <section class="grid two">
-      <div class="panel">
-        <h2>$10k Compounding Equity</h2>
-        <canvas id="compoundBacktestChart" class="chart"></canvas>
-      </div>
-      <div class="panel">
-        <h2>$10k No Compounding Equity</h2>
-        <canvas id="fixedBacktestChart" class="chart"></canvas>
-      </div>
+      <div class="panel"><h2>Daily Stats</h2><div id="compoundDaily"></div></div>
+      <div class="panel"><h2>Exit Split</h2><div id="compoundExits"></div></div>
     </section>
+    <section class="panel tables"><h2>Recent Backtest Trades</h2><div id="compoundTrades"></div></section>
+    <section class="panel tables"><h2>Backtest Rules</h2><div id="compoundRules"></div></section>
+  </section>
+  <section id="nonCompoundingPage" class="page">
+    <section class="grid metrics" id="fixedMetrics"></section>
+    <section class="grid main"><div class="panel"><h2>$10k Non-Compounding Equity Curve</h2><canvas id="fixedBacktestChart" class="chart"></canvas></div></section>
     <section class="grid two">
-      <div class="panel">
-        <h2>Compounding Daily Stats</h2>
-        <div id="compoundDaily"></div>
-      </div>
-      <div class="panel">
-        <h2>No Compounding Daily Stats</h2>
-        <div id="fixedDaily"></div>
-      </div>
+      <div class="panel"><h2>Daily Stats</h2><div id="fixedDaily"></div></div>
+      <div class="panel"><h2>Exit Split</h2><div id="fixedExits"></div></div>
     </section>
-    <section class="grid two">
-      <div class="panel">
-        <h2>Compounding Exit Split</h2>
-        <div id="compoundExits"></div>
-      </div>
-      <div class="panel">
-        <h2>No Compounding Exit Split</h2>
-        <div id="fixedExits"></div>
-      </div>
-    </section>
+    <section class="panel tables"><h2>Recent Backtest Trades</h2><div id="fixedTrades"></div></section>
+    <section class="panel tables"><h2>Backtest Rules</h2><div id="fixedRules"></div></section>
   </section>
 </main>
 <script>
@@ -173,8 +167,52 @@ const columns = {
   pending: ["signal_id","symbol","setup","created_time_ct","entry_stop","stop","target","risk_per_share","entry_score","ftfc_score","rel_volume","expires_at_et","status"],
   closed: ["trade_id","signal_id","symbol","entry_time_ct","exit_time_ct","entry_price","exit_price","stop","target","shares","gross_invested","pnl","return_on_gross","exit_reason"],
   signals: ["signal_id","symbol","completed_m5_time_ct","entry_stop","stop","target","risk_per_share","entry_score","ftfc_score","rel_volume","prior_green_run","p1_close_vs_day_open_pct","status"],
-  quotes: ["snapshot_ct","symbol","last","bid","ask","mark","completed_m5_time_et","p1_close","p1_ema9","p1_ema30","p1_vwap","rel_volume","ftfc_score","momentum_setup"]
+  quotes: ["snapshot_ct","symbol","last","bid","ask","mark","completed_m5_time_et","p1_close","p1_ema9","p1_ema30","p1_vwap","rel_volume","ftfc_score","momentum_setup"],
+  backtestTrades: ["datetime","exit_datetime","symbol","setup","entry","stop","target","exit_price","exit_reason","shares","gross_invested","planned_risk","pnl","r_multiple","return_pct_on_gross","ftfc_score","rel_volume"]
 };
+
+const RULE_GROUPS = [
+  ["Signal", [
+    "Runs 2 seconds after each completed M5 candle.",
+    "Uses only completed regular-session M5 candles.",
+    "Prior M5 candle must be green: close > open.",
+    "Prior M5 close must be above EMA9.",
+    "Relative volume must be >= 1.0.",
+    "FTFC score must be >= 4."
+  ]],
+  ["FTFC / Filters", [
+    "FTFC checks: M5 close above day open, VWAP, EMA30, EMA9.",
+    "Completed H1 context must score at least 2 bullish checks.",
+    "Prior green-run must be <= 4.",
+    "Prior M5 close must be <= 5% above day open.",
+    "M5 candle risk must be <= 2% of entry."
+  ]],
+  ["Entry", [
+    "Create a paper buy stop-limit order at the prior completed M5 high.",
+    "Order expires after 5 minutes if not triggered.",
+    "Paper fill price is the stop-limit price when price trades through it.",
+    "When too many signals appear, rank by entry_score and keep the best available slots."
+  ]],
+  ["Allocation", [
+    "Initial paper capital is $10,000 unless overridden.",
+    "Max gross exposure is 100% of current paper equity.",
+    "Fixed-slot allocation uses 2 slots.",
+    "Each new trade targets about 50% of current paper equity.",
+    "If both slots are full, no new entry orders are kept."
+  ]],
+  ["Exit", [
+    "Stop loss = prior completed M5 low.",
+    "Target = 1.5R by default.",
+    "R = entry price - stop price.",
+    "Target and stop are modeled as pre-planned paper OCO exits.",
+    "If neither target nor stop is reached within 15 minutes, exit reason is time."
+  ]],
+  ["Paper Trading Note", [
+    "This dashboard and recorder do not place real Schwab orders.",
+    "They mimic stop-limit entries and OCO exits using Schwab market data.",
+    "The fast order monitor checks pending entries and open exits between M5 signal cycles."
+  ]]
+];
 
 function money(v) { return "$" + Number(v || 0).toLocaleString(undefined, {maximumFractionDigits: 2, minimumFractionDigits: 2}); }
 function pct(v) { return (Number(v || 0) * 100).toFixed(2) + "%"; }
@@ -183,8 +221,8 @@ function num(v, d=2) {
   return Number(v).toLocaleString(undefined, {maximumFractionDigits: d});
 }
 function fmtCell(key, v) {
-  if (["pnl","cash","equity","realized_pnl","unrealized_pnl","open_gross","open_risk","gross_invested","planned_risk","market_value","allocation_target","avg_pnl","start_equity","end_equity","daily_pnl"].includes(key)) return money(v);
-  if (["return_on_gross","return_on_risk","win_rate","avg_pnl_pct","invested_pct","open_risk_pct","p1_close_vs_day_open_pct","daily_return_pct","max_invested_pct","avg_invested_pct"].includes(key)) return pct(v);
+  if (["pnl","cash","equity","realized_pnl","unrealized_pnl","open_gross","open_risk","gross_invested","planned_risk","market_value","allocation_target","avg_pnl","start_equity","end_equity","daily_pnl","entry","exit_price"].includes(key)) return money(v);
+  if (["return_on_gross","return_on_risk","return_pct_on_gross","win_rate","avg_pnl_pct","invested_pct","open_risk_pct","p1_close_vs_day_open_pct","daily_return_pct","max_invested_pct","avg_invested_pct"].includes(key)) return pct(v);
   if (["entry_score"].includes(key)) return num(v, 1);
   if (["entry_price","exit_price","entry_stop","stop","target","risk_per_share","last","bid","ask","mark","p1_close","p1_ema9","p1_ema30","p1_vwap","rel_volume"].includes(key)) return num(v, 3);
   return v ?? "";
@@ -210,22 +248,30 @@ function setMetrics(s) {
     `<div class="card metric"><div class="label">${label}</div><div class="value ${value.includes('-') ? 'bad' : ''}">${value}</div><div class="small">${small}</div></div>`
   ).join("");
 }
-function setBacktestMetrics(bt) {
-  const c = bt.compounding10k?.summary || {};
-  const f = bt.fixed10k?.summary || {};
-  const data = [
-    ["Comp Final Equity", money(c.final_equity), pct(c.total_return_pct)],
-    ["Comp Win Rate", pct(c.win_rate), `${num(c.trades, 0)} trades`],
-    ["Comp Profit Factor", num(c.profit_factor, 2), `Max DD ${pct(c.max_drawdown_pct)}`],
-    ["Comp Avg Daily", money(c.avg_daily_pnl), pct(c.avg_daily_return_pct)],
-    ["No Comp Final Equity", money(f.final_equity), pct(f.total_return_pct)],
-    ["No Comp Win Rate", pct(f.win_rate), `${num(f.trades, 0)} trades`],
-    ["No Comp Profit Factor", num(f.profit_factor, 2), `Max DD ${pct(f.max_drawdown_pct)}`],
-    ["No Comp Avg Daily", money(f.avg_daily_pnl), pct(f.avg_daily_return_pct)]
-  ];
-  document.getElementById("backtestMetrics").innerHTML = data.map(([label,value,small]) =>
-    `<div class="card metric"><div class="label">${label}</div><div class="value ${String(value).includes('-') ? 'bad' : ''}">${value}</div><div class="small">${small}</div></div>`
+function metricCards(id, rows) {
+  document.getElementById(id).innerHTML = rows.map(([label,value,small]) =>
+    `<div class="card metric"><div class="label">${label}</div><div class="value ${String(value).includes('-') ? 'bad' : ''}">${value}</div><div class="small">${small || ""}</div></div>`
   ).join("");
+}
+function setBacktestMetrics(id, test) {
+  const s = test?.summary || {};
+  const data = [
+    ["Initial Equity", money(s.initial_equity), test?.label || ""],
+    ["Final Equity", money(s.final_equity), pct(s.total_return_pct)],
+    ["Total P/L", money(s.total_pnl), `${num(s.trades, 0)} trades`],
+    ["Win Rate", pct(s.win_rate), `PF ${num(s.profit_factor, 2)}`],
+    ["Max Drawdown", pct(s.max_drawdown_pct), ""],
+    ["Avg Daily P/L", money(s.avg_daily_pnl), pct(s.avg_daily_return_pct)],
+    ["Avg Trades / Day", num(s.avg_trades_per_day, 1), `${num(s.trading_days, 0)} days`],
+    ["Avg Invested", pct(s.avg_invested_pct), `>=95% days ${pct(s.pct_days_max_invested_ge_95pct)}`]
+  ];
+  metricCards(id, data);
+}
+function renderRulesWidget(id) {
+  const html = `<div class="rule-grid">${RULE_GROUPS.map(([title, items]) =>
+    `<div class="rule-block"><h3>${title}</h3><div class="rules">${items.map((item, i) => `${i + 1}. ${item}`).join("\n")}</div></div>`
+  ).join("")}</div>`;
+  document.getElementById(id).innerHTML = html;
 }
 function drawLineChart(canvas, series, opts) {
   const ctx = canvas.getContext("2d");
@@ -274,74 +320,6 @@ function drawLineChart(canvas, series, opts) {
 function renderTab() {
   const body = document.getElementById("tabBody");
   if (!lastPayload) return;
-  if (activeTab === "rules") {
-    body.innerHTML = `<div class="rules">Strategy: M5 Quick FTFC Momentum, long-only leveraged ETF paper trader
-
-Universe:
-BOIL, KOLD, LABD, LABU, MSTU, MSTZ, NVDL, SOXL, SOXS, SPXU, SQQQ, TQQQ, TSLL, UPRO
-
-Signal timing:
-1. Signal generation runs 2 seconds after each completed M5 candle.
-2. Only completed regular-session M5 candles are used for signal creation.
-3. The active/incomplete M5 candle is not used to create a signal.
-
-Long entry setup:
-1. Prior completed M5 candle must be green: close > open.
-2. Prior completed M5 close must be above EMA9.
-3. Relative volume must be >= 1.0.
-4. FTFC score must be >= 4.
-5. FTFC score checks:
-   - M5 close above day open.
-   - M5 close above VWAP.
-   - M5 close above EMA30.
-   - M5 close above EMA9.
-   - Completed H1 context is bullish enough, meaning at least 2 of:
-     H1 green, H1 close above H1 day open, H1 close above H1 VWAP.
-6. Extension filter must pass:
-   - Prior green-run must be <= 4.
-   - Prior M5 close must not be more than 5% above the day open.
-7. M5 candle risk must be <= 2% of entry price.
-
-Entry order:
-1. If a valid signal appears, the bot creates a paper BUY STOP-LIMIT order.
-2. Entry stop-limit price = prior completed M5 high.
-3. The paper order expires after 5 minutes if not triggered.
-4. The paper ledger fills at the stop-limit price when price trades through that level.
-5. Example: if prior M5 high is 16.25, the paper entry is 16.25, not the later quote.
-
-Signal ranking:
-1. When more signals appear than available slots, choose the highest-ranked signals.
-2. Ranking score rewards FTFC strength and relative volume.
-3. Ranking score penalizes wide candle risk, prior green-run extension, and distance above day open.
-4. The same entry_score logic is used by the backtest and live paper recorder.
-
-Portfolio allocation:
-1. Initial paper capital is $10,000 unless overridden at runtime.
-2. Max gross exposure is 100% of current paper equity.
-3. Fixed-slot allocation uses 2 slots.
-4. Each new trade targets about 50% of current paper equity.
-5. If both slots are full, no new entry orders are kept.
-6. Daily trade cap is effectively uncapped unless overridden.
-
-Exit rules:
-1. Stop loss = prior completed M5 low.
-2. Target = 1.5R by default.
-3. R = entry price - stop price.
-4. Example: entry 16.25, stop 16.05, risk 0.20, target = 16.25 + 1.5 * 0.20 = 16.55.
-5. Target and stop are treated as pre-planned paper OCO orders.
-6. If stop is touched first, exit reason is stop.
-7. If target is touched first, exit reason is target.
-8. If neither target nor stop is reached within 15 minutes, exit reason is time.
-9. Near end of day, open trades can be closed with eod exit handling.
-10. The fast order monitor checks pending entries and open OCO exits between M5 signal cycles.
-
-Important paper-trading note:
-This dashboard and recorder do not place real Schwab orders. They mimic stop-limit entries and OCO exits using Schwab market data.
-
-This dashboard reads files from:
-${lastPayload.output_dir}</div>`;
-    return;
-  }
   const rows = {
     open: lastPayload.open_trades,
     pending: lastPayload.pending_orders,
@@ -362,13 +340,15 @@ function render(payload) {
   });
   document.getElementById("exitTable").innerHTML = table(payload.exit_reasons, ["exit_reason","trades","win_rate","pnl","avg_pnl","avg_pnl_pct"]);
   document.getElementById("dailyTable").innerHTML = table(payload.daily, ["date","trades","wins","losses","win_rate","pnl","symbols"]);
+  renderRulesWidget("rulesWidget");
   renderBacktest(payload.backtest || {});
   renderTab();
 }
 function renderBacktest(bt) {
-  setBacktestMetrics(bt);
   const comp = bt.compounding10k || {};
   const fixed = bt.fixed10k || {};
+  setBacktestMetrics("compoundMetrics", comp);
+  setBacktestMetrics("fixedMetrics", fixed);
   drawLineChart(document.getElementById("compoundBacktestChart"), comp.curve || [], {
     format: money,
     lines: [{key:"equity", color:"#1d5fd1"}]
@@ -382,6 +362,10 @@ function renderBacktest(bt) {
   document.getElementById("fixedDaily").innerHTML = table(fixed.daily || [], dailyCols);
   document.getElementById("compoundExits").innerHTML = table(comp.exit_reasons || [], ["exit_reason","trades","win_rate","pnl","avg_pnl","avg_pnl_pct"]);
   document.getElementById("fixedExits").innerHTML = table(fixed.exit_reasons || [], ["exit_reason","trades","win_rate","pnl","avg_pnl","avg_pnl_pct"]);
+  document.getElementById("compoundTrades").innerHTML = table(comp.trades || [], columns.backtestTrades);
+  document.getElementById("fixedTrades").innerHTML = table(fixed.trades || [], columns.backtestTrades);
+  renderRulesWidget("compoundRules");
+  renderRulesWidget("fixedRules");
 }
 async function refresh() {
   try {
