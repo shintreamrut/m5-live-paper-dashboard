@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-14 16:06:40",
+  "generated_at": "2026-05-14 18:37:40",
   "latest_file_update": "2026-05-14 15:00:57",
   "output_dir": "/Users/amrutshintre/Documents/Codex/2026-05-05/can-you-design-a-strategy-for/outputs/live_m5_quick_ftfc_recorder",
   "summary": {
@@ -48332,26 +48332,26 @@
       "label": "$10k Fixed Amount / No Compounding",
       "summary": {
         "initial_equity": 10000.0,
-        "final_equity": 27563.434394500116,
-        "total_return_pct": 1.7563434394500117,
-        "trades": 4890,
-        "win_rate": 0.5126789366053169,
-        "profit_factor": 1.313327354762591,
-        "total_pnl": 17563.434394499996,
-        "avg_trade_pnl": 3.5917043751533737,
-        "avg_return_pct_on_gross": 0.0007229729897245595,
+        "final_equity": 27607.810194500118,
+        "total_return_pct": 1.760781019450012,
+        "trades": 4893,
+        "win_rate": 0.512773349683221,
+        "profit_factor": 1.314021420160604,
+        "total_pnl": 17607.810194499998,
+        "avg_trade_pnl": 3.5985714683220924,
+        "avg_return_pct_on_gross": 0.0007244046100902264,
         "max_drawdown_pct": -0.04115554138119759,
         "trading_days": 180,
-        "avg_daily_pnl": 97.57463552499996,
-        "avg_daily_return_pct": 0.00571718085679216,
-        "pct_days_ge_1pct": 0.3388888888888889,
+        "avg_daily_pnl": 97.82116774722219,
+        "avg_daily_return_pct": 0.005726213337302657,
+        "pct_days_ge_1pct": 0.34444444444444444,
         "pct_days_le_minus_3pct": 0.0,
-        "avg_trades_per_day": 27.166666666666668,
+        "avg_trades_per_day": 27.183333333333334,
         "avg_max_invested_pct": 0.5881761704096227,
         "pct_days_max_invested_ge_95pct": 0.05,
-        "avg_invested_pct": 0.430436541291779,
+        "avg_invested_pct": 0.43025484504688954,
         "date_start": "2025-08-27 09:30:00",
-        "date_end": "2026-05-14 13:25:00"
+        "date_end": "2026-05-14 15:55:00"
       },
       "config": {
         "name": "m5_fixed_amount_rr1.5_fixed5000_slots2_ext",
@@ -64089,20 +64089,20 @@
         },
         {
           "time": "2025-12-04 15:55:00",
-          "equity": 16095.914159000025,
-          "open_gross": 4997.12,
-          "open_risk": 39.040000000000035,
-          "open_trades": 1,
-          "active_symbols": 1,
-          "spy_equity": 10610.35920809885
-        },
-        {
-          "time": "2025-12-04 15:55:00",
           "equity": 16121.973359000025,
           "open_gross": 0.0,
           "open_risk": 0.0,
           "open_trades": 0,
           "active_symbols": 0,
+          "spy_equity": 10610.35920809885
+        },
+        {
+          "time": "2025-12-04 15:55:00",
+          "equity": 16095.914159000025,
+          "open_gross": 4997.12,
+          "open_risk": 39.040000000000035,
+          "open_trades": 1,
+          "active_symbols": 1,
           "spy_equity": 10610.35920809885
         },
         {
@@ -64233,20 +64233,20 @@
         },
         {
           "time": "2025-12-05 15:35:00",
-          "equity": 16369.44300900003,
-          "open_gross": 4992.405000000001,
-          "open_risk": 22.515000000000573,
-          "open_trades": 1,
-          "active_symbols": 1,
-          "spy_equity": 10629.738151713875
-        },
-        {
-          "time": "2025-12-05 15:35:00",
           "equity": 16346.928009000028,
           "open_gross": 0.0,
           "open_risk": 0.0,
           "open_trades": 0,
           "active_symbols": 0,
+          "spy_equity": 10629.738151713875
+        },
+        {
+          "time": "2025-12-05 15:35:00",
+          "equity": 16369.44300900003,
+          "open_gross": 4992.405000000001,
+          "open_risk": 22.515000000000573,
+          "open_trades": 1,
+          "active_symbols": 1,
           "spy_equity": 10629.738151713875
         },
         {
@@ -71568,20 +71568,20 @@
         },
         {
           "time": "2026-01-28 15:50:00",
-          "equity": 18443.239089500068,
-          "open_gross": 0.0,
-          "open_risk": 0.0,
-          "open_trades": 0,
-          "active_symbols": 0,
-          "spy_equity": 10781.203975008915
-        },
-        {
-          "time": "2026-01-28 15:50:00",
           "equity": 18465.73388950007,
           "open_gross": 9920.349999999999,
           "open_risk": 22.494799999999607,
           "open_trades": 2,
           "active_symbols": 2,
+          "spy_equity": 10781.203975008915
+        },
+        {
+          "time": "2026-01-28 15:50:00",
+          "equity": 18443.239089500068,
+          "open_gross": 0.0,
+          "open_risk": 0.0,
+          "open_trades": 0,
+          "active_symbols": 0,
           "spy_equity": 10781.203975008915
         },
         {
@@ -74943,20 +74943,20 @@
         },
         {
           "time": "2026-02-24 15:50:00",
-          "equity": 20352.738689500078,
-          "open_gross": 0.0,
-          "open_risk": 0.0,
-          "open_trades": 0,
-          "active_symbols": 0,
-          "spy_equity": 10656.248546579229
-        },
-        {
-          "time": "2026-02-24 15:50:00",
           "equity": 20361.018689500077,
           "open_gross": 4977.36,
           "open_risk": 8.279999999999632,
           "open_trades": 1,
           "active_symbols": 1,
+          "spy_equity": 10656.248546579229
+        },
+        {
+          "time": "2026-02-24 15:50:00",
+          "equity": 20352.738689500078,
+          "open_gross": 0.0,
+          "open_risk": 0.0,
+          "open_trades": 0,
+          "active_symbols": 0,
           "spy_equity": 10656.248546579229
         },
         {
@@ -75384,20 +75384,20 @@
         },
         {
           "time": "2026-02-27 15:55:00",
-          "equity": 20390.185665500067,
-          "open_gross": 0.0,
-          "open_risk": 0.0,
-          "open_trades": 0,
-          "active_symbols": 0,
-          "spy_equity": 10638.574950002327
-        },
-        {
-          "time": "2026-02-27 15:55:00",
           "equity": 20359.77066550007,
           "open_gross": 9927.945,
           "open_risk": 65.71499999999996,
           "open_trades": 2,
           "active_symbols": 2,
+          "spy_equity": 10638.574950002327
+        },
+        {
+          "time": "2026-02-27 15:55:00",
+          "equity": 20390.185665500067,
+          "open_gross": 0.0,
+          "open_risk": 0.0,
+          "open_trades": 0,
+          "active_symbols": 0,
           "spy_equity": 10638.574950002327
         },
         {
@@ -75555,20 +75555,20 @@
         },
         {
           "time": "2026-03-02 15:55:00",
-          "equity": 20602.692065500072,
-          "open_gross": 4981.0,
-          "open_risk": 20.000000000000284,
-          "open_trades": 1,
-          "active_symbols": 1,
-          "spy_equity": 10640.90042323613
-        },
-        {
-          "time": "2026-03-02 15:55:00",
           "equity": 20590.692065500072,
           "open_gross": 0.0,
           "open_risk": 0.0,
           "open_trades": 0,
           "active_symbols": 0,
+          "spy_equity": 10640.90042323613
+        },
+        {
+          "time": "2026-03-02 15:55:00",
+          "equity": 20602.692065500072,
+          "open_gross": 4981.0,
+          "open_risk": 20.000000000000284,
+          "open_trades": 1,
+          "active_symbols": 1,
           "spy_equity": 10640.90042323613
         },
         {
@@ -75816,20 +75816,20 @@
         },
         {
           "time": "2026-03-03 15:45:00",
-          "equity": 20405.95506550007,
-          "open_gross": 0.0,
-          "open_risk": 0.0,
-          "open_trades": 0,
-          "active_symbols": 0,
-          "spy_equity": 10546.331178394803
-        },
-        {
-          "time": "2026-03-03 15:45:00",
           "equity": 20430.155065500072,
           "open_gross": 4961.0,
           "open_risk": 24.200000000000344,
           "open_trades": 1,
           "active_symbols": 1,
+          "spy_equity": 10546.331178394803
+        },
+        {
+          "time": "2026-03-03 15:45:00",
+          "equity": 20405.95506550007,
+          "open_gross": 0.0,
+          "open_risk": 0.0,
+          "open_trades": 0,
+          "active_symbols": 0,
           "spy_equity": 10546.331178394803
         },
         {
@@ -76266,20 +76266,20 @@
         },
         {
           "time": "2026-03-05 15:55:00",
-          "equity": 20889.979665500072,
-          "open_gross": 0.0,
-          "open_risk": 0.0,
-          "open_trades": 0,
-          "active_symbols": 0,
-          "spy_equity": 10564.46986961847
-        },
-        {
-          "time": "2026-03-05 15:55:00",
           "equity": 20870.86966550007,
           "open_gross": 9967.71,
           "open_risk": 53.64500000000029,
           "open_trades": 2,
           "active_symbols": 2,
+          "spy_equity": 10564.46986961847
+        },
+        {
+          "time": "2026-03-05 15:55:00",
+          "equity": 20889.979665500072,
+          "open_gross": 0.0,
+          "open_risk": 0.0,
+          "open_trades": 0,
+          "active_symbols": 0,
           "spy_equity": 10564.46986961847
         },
         {
@@ -76572,20 +76572,20 @@
         },
         {
           "time": "2026-03-06 15:55:00",
-          "equity": 20962.77846550007,
-          "open_gross": 0.0,
-          "open_risk": 0.0,
-          "open_trades": 0,
-          "active_symbols": 0,
-          "spy_equity": 10425.251538688124
-        },
-        {
-          "time": "2026-03-06 15:55:00",
           "equity": 20971.67846550007,
           "open_gross": 9899.18,
           "open_risk": 77.7100000000008,
           "open_trades": 2,
           "active_symbols": 2,
+          "spy_equity": 10425.251538688124
+        },
+        {
+          "time": "2026-03-06 15:55:00",
+          "equity": 20962.77846550007,
+          "open_gross": 0.0,
+          "open_risk": 0.0,
+          "open_trades": 0,
+          "active_symbols": 0,
           "spy_equity": 10425.251538688124
         },
         {
@@ -80092,19 +80092,19 @@
         {
           "time": "2026-04-01 15:55:00",
           "equity": 22954.23003550008,
-          "open_gross": 0.0,
-          "open_risk": 0.0,
-          "open_trades": 0,
-          "active_symbols": 0,
+          "open_gross": 4996.98,
+          "open_risk": 50.829999999999615,
+          "open_trades": 1,
+          "active_symbols": 1,
           "spy_equity": 10157.201990605088
         },
         {
           "time": "2026-04-01 15:55:00",
           "equity": 22954.23003550008,
-          "open_gross": 4996.98,
-          "open_risk": 50.829999999999615,
-          "open_trades": 1,
-          "active_symbols": 1,
+          "open_gross": 0.0,
+          "open_risk": 0.0,
+          "open_trades": 0,
+          "active_symbols": 0,
           "spy_equity": 10157.201990605088
         },
         {
@@ -80532,20 +80532,20 @@
         },
         {
           "time": "2026-04-07 15:55:00",
-          "equity": 23147.34393550008,
-          "open_gross": 0.0,
-          "open_risk": 0.0,
-          "open_trades": 0,
-          "active_symbols": 0,
-          "spy_equity": 10220.764925662374
-        },
-        {
-          "time": "2026-04-07 15:55:00",
           "equity": 23136.16463550008,
           "open_gross": 9917.06,
           "open_risk": 57.415899999999965,
           "open_trades": 2,
           "active_symbols": 2,
+          "spy_equity": 10220.764925662374
+        },
+        {
+          "time": "2026-04-07 15:55:00",
+          "equity": 23147.34393550008,
+          "open_gross": 0.0,
+          "open_risk": 0.0,
+          "open_trades": 0,
+          "active_symbols": 0,
           "spy_equity": 10220.764925662374
         },
         {
@@ -82737,20 +82737,20 @@
         },
         {
           "time": "2026-04-22 15:55:00",
-          "equity": 24700.252913500106,
-          "open_gross": 0.0,
-          "open_risk": 0.0,
-          "open_trades": 0,
-          "active_symbols": 0,
-          "spy_equity": 11025.998790753918
-        },
-        {
-          "time": "2026-04-22 15:55:00",
           "equity": 24703.642913500105,
           "open_gross": 9928.23,
           "open_risk": 59.640000000000114,
           "open_trades": 2,
           "active_symbols": 2,
+          "spy_equity": 11025.998790753918
+        },
+        {
+          "time": "2026-04-22 15:55:00",
+          "equity": 24700.252913500106,
+          "open_gross": 0.0,
+          "open_risk": 0.0,
+          "open_trades": 0,
+          "active_symbols": 0,
           "spy_equity": 11025.998790753918
         },
         {
@@ -83646,20 +83646,20 @@
         },
         {
           "time": "2026-04-28 15:35:00",
-          "equity": 25559.389163500124,
-          "open_gross": 9951.9264,
-          "open_risk": 45.94640000000035,
-          "open_trades": 2,
-          "active_symbols": 2,
-          "spy_equity": 11033.285273553167
-        },
-        {
-          "time": "2026-04-28 15:35:00",
           "equity": 25542.790763500125,
           "open_gross": 4959.168000000001,
           "open_risk": 29.34800000000024,
           "open_trades": 1,
           "active_symbols": 1,
+          "spy_equity": 11033.285273553167
+        },
+        {
+          "time": "2026-04-28 15:35:00",
+          "equity": 25559.389163500124,
+          "open_gross": 9951.9264,
+          "open_risk": 45.94640000000035,
+          "open_trades": 2,
+          "active_symbols": 2,
           "spy_equity": 11033.285273553167
         },
         {
@@ -83790,20 +83790,20 @@
         },
         {
           "time": "2026-04-29 15:55:00",
-          "equity": 25647.097013500123,
-          "open_gross": 4886.7,
-          "open_risk": 12.479999999999734,
-          "open_trades": 1,
-          "active_symbols": 1,
-          "spy_equity": 11031.889989612886
-        },
-        {
-          "time": "2026-04-29 15:55:00",
           "equity": 25659.577013500122,
           "open_gross": 0.0,
           "open_risk": 0.0,
           "open_trades": 0,
           "active_symbols": 0,
+          "spy_equity": 11031.889989612886
+        },
+        {
+          "time": "2026-04-29 15:55:00",
+          "equity": 25647.097013500123,
+          "open_gross": 4886.7,
+          "open_risk": 12.479999999999734,
+          "open_trades": 1,
+          "active_symbols": 1,
           "spy_equity": 11031.889989612886
         },
         {
@@ -84069,20 +84069,20 @@
         },
         {
           "time": "2026-05-01 14:30:00",
-          "equity": 26036.980563500114,
-          "open_gross": 4940.0,
-          "open_risk": 11.019999999999698,
-          "open_trades": 1,
-          "active_symbols": 1,
-          "spy_equity": 11172.658636032433
-        },
-        {
-          "time": "2026-05-01 14:30:00",
           "equity": 26025.960563500113,
           "open_gross": 0.0,
           "open_risk": 0.0,
           "open_trades": 0,
           "active_symbols": 0,
+          "spy_equity": 11172.658636032433
+        },
+        {
+          "time": "2026-05-01 14:30:00",
+          "equity": 26036.980563500114,
+          "open_gross": 4940.0,
+          "open_risk": 11.019999999999698,
+          "open_trades": 1,
+          "active_symbols": 1,
           "spy_equity": 11172.658636032433
         },
         {
@@ -85976,8 +85976,35 @@
           "spy_equity": 11576.670852518488
         },
         {
-          "time": "2026-05-14 12:55:00",
+          "time": "2026-05-14 14:30:00",
           "equity": 27563.434394500116,
+          "open_gross": 4893.26,
+          "open_risk": 21.280000000000086,
+          "open_trades": 1,
+          "active_symbols": 1,
+          "spy_equity": 11576.670852518488
+        },
+        {
+          "time": "2026-05-14 14:50:00",
+          "equity": 27570.240194500115,
+          "open_gross": 4854.2,
+          "open_risk": 36.65999999999991,
+          "open_trades": 1,
+          "active_symbols": 1,
+          "spy_equity": 11576.670852518488
+        },
+        {
+          "time": "2026-05-14 15:45:00",
+          "equity": 27625.230194500116,
+          "open_gross": 4913.48,
+          "open_risk": 17.419999999999675,
+          "open_trades": 1,
+          "active_symbols": 1,
+          "spy_equity": 11576.670852518488
+        },
+        {
+          "time": "2026-05-14 15:50:00",
+          "equity": 27607.810194500118,
           "open_gross": 0.0,
           "open_risk": 0.0,
           "open_trades": 0,
@@ -86756,117 +86783,18 @@
         {
           "date": "2026-05-14",
           "start_equity": "27293.966694500115",
-          "end_equity": "27563.434394500116",
-          "daily_pnl": "269.46769999999805",
-          "daily_return_pct": "0.009872793610988806",
-          "trades": "18",
+          "end_equity": "27607.810194500118",
+          "daily_pnl": "313.84349999999773",
+          "daily_return_pct": "0.011498640102878266",
+          "trades": "21",
           "skipped_capacity": "4",
           "skipped_symbol_open": "3",
           "max_invested_pct": "0.3626172598048786",
-          "avg_invested_pct": "0.2702279480020846",
+          "avg_invested_pct": "0.2569313805612117",
           "max_open_risk_pct": "0.003440368640580386"
         }
       ],
       "trades": [
-        {
-          "strategy": "M1_QUICK_FTFC",
-          "setup": "momentum_prev_high",
-          "symbol": "UPRO",
-          "datetime": "2026-05-01 09:55:00",
-          "date": "2026-05-01",
-          "entry": "131.51",
-          "stop": "130.97",
-          "target": "132.32",
-          "risk_per_share": "0.539999999999992",
-          "rr": "1.5",
-          "ftfc_score": "5",
-          "rel_volume": "2.7065025612596814",
-          "prior_green_run": "2.0",
-          "p1_close_vs_day_open_pct": "0.005436030931781577",
-          "entry_score": "522.1108073570737",
-          "exit_datetime": "2026-05-01 10:00:00",
-          "exit_price": "132.32",
-          "exit_reason": "target",
-          "shares": "38",
-          "gross_invested": "4997.379999999999",
-          "equal_allocation_target": "5000.0",
-          "planned_risk": "20.519999999999698",
-          "pnl": "30.780000000000086",
-          "r_multiple": "1.5000000000000264",
-          "return_pct_on_gross": "0.00615922743517605",
-          "equity_at_entry": "25796.904463500112",
-          "open_gross_after_entry": "4997.379999999999",
-          "open_risk_after_entry": "20.519999999999698",
-          "status": "closed",
-          "entry_time_ct": "2026-05-01 09:55:00",
-          "exit_time_ct": "2026-05-01 10:00:00"
-        },
-        {
-          "strategy": "M1_QUICK_FTFC",
-          "setup": "momentum_prev_high",
-          "symbol": "TQQQ",
-          "datetime": "2026-05-01 09:55:00",
-          "date": "2026-05-01",
-          "entry": "65.13",
-          "stop": "64.7729",
-          "target": "65.66564999999997",
-          "risk_per_share": "0.3570999999999884",
-          "rr": "1.5",
-          "ftfc_score": "5",
-          "rel_volume": "1.566909907428689",
-          "prior_green_run": "2.0",
-          "p1_close_vs_day_open_pct": "0.017062138049772857",
-          "entry_score": "509.4145972300037",
-          "exit_datetime": "2026-05-01 10:00:00",
-          "exit_price": "65.66564999999997",
-          "exit_reason": "target",
-          "shares": "76",
-          "gross_invested": "4949.879999999999",
-          "equal_allocation_target": "5000.0",
-          "planned_risk": "27.13959999999912",
-          "pnl": "40.70939999999814",
-          "r_multiple": "1.49999999999998",
-          "return_pct_on_gross": "0.008224320589589676",
-          "equity_at_entry": "25796.904463500112",
-          "open_gross_after_entry": "9947.259999999998",
-          "open_risk_after_entry": "47.65959999999882",
-          "status": "closed",
-          "entry_time_ct": "2026-05-01 09:55:00",
-          "exit_time_ct": "2026-05-01 10:00:00"
-        },
-        {
-          "strategy": "M1_QUICK_FTFC",
-          "setup": "momentum_prev_high",
-          "symbol": "UPRO",
-          "datetime": "2026-05-01 10:00:00",
-          "date": "2026-05-01",
-          "entry": "132.13",
-          "stop": "131.37",
-          "target": "133.26999999999998",
-          "risk_per_share": "0.7599999999999909",
-          "rr": "1.5",
-          "ftfc_score": "5",
-          "rel_volume": "1.7931537995004325",
-          "prior_green_run": "3.0",
-          "p1_close_vs_day_open_pct": "0.011637700022969044",
-          "entry_score": "510.19257689303276",
-          "exit_datetime": "2026-05-01 10:15:00",
-          "exit_price": "132.3393",
-          "exit_reason": "time",
-          "shares": "37",
-          "gross_invested": "4888.8099999999995",
-          "equal_allocation_target": "5000.0",
-          "planned_risk": "28.119999999999663",
-          "pnl": "7.744100000000486",
-          "r_multiple": "0.27539473684212584",
-          "return_pct_on_gross": "0.0015840460152880735",
-          "equity_at_entry": "25868.39386350011",
-          "open_gross_after_entry": "4888.8099999999995",
-          "open_risk_after_entry": "28.119999999999663",
-          "status": "closed",
-          "entry_time_ct": "2026-05-01 10:00:00",
-          "exit_time_ct": "2026-05-01 10:15:00"
-        },
         {
           "strategy": "M1_QUICK_FTFC",
           "setup": "momentum_prev_high",
@@ -95017,32 +94945,131 @@
           "status": "closed",
           "entry_time_ct": "2026-05-14 12:45:00",
           "exit_time_ct": "2026-05-14 12:55:00"
+        },
+        {
+          "strategy": "M1_QUICK_FTFC",
+          "setup": "momentum_prev_high",
+          "symbol": "NVDL",
+          "datetime": "2026-05-14 14:30:00",
+          "date": "2026-05-14",
+          "entry": "128.77",
+          "stop": "128.21",
+          "target": "129.61",
+          "risk_per_share": "0.5600000000000023",
+          "rr": "1.5",
+          "ftfc_score": "5",
+          "rel_volume": "1.4948566041804037",
+          "prior_green_run": "2.0",
+          "p1_close_vs_day_open_pct": "0.048899755501222275",
+          "entry_score": "505.623706590152",
+          "exit_datetime": "2026-05-14 14:45:00",
+          "exit_price": "128.9491",
+          "exit_reason": "time",
+          "shares": "38",
+          "gross_invested": "4893.26",
+          "equal_allocation_target": "5000.0",
+          "planned_risk": "21.280000000000086",
+          "pnl": "6.805799999999124",
+          "r_multiple": "0.3198214285713861",
+          "return_pct_on_gross": "0.0013908519064997822",
+          "equity_at_entry": "27563.434394500116",
+          "open_gross_after_entry": "4893.26",
+          "open_risk_after_entry": "21.280000000000086",
+          "status": "closed",
+          "entry_time_ct": "2026-05-14 14:30:00",
+          "exit_time_ct": "2026-05-14 14:45:00"
+        },
+        {
+          "strategy": "M1_QUICK_FTFC",
+          "setup": "momentum_prev_high",
+          "symbol": "SOXL",
+          "datetime": "2026-05-14 14:50:00",
+          "date": "2026-05-14",
+          "entry": "186.7",
+          "stop": "185.29",
+          "target": "188.815",
+          "risk_per_share": "1.4099999999999966",
+          "rr": "1.5",
+          "ftfc_score": "5",
+          "rel_volume": "1.1178162333165569",
+          "prior_green_run": "2.0",
+          "p1_close_vs_day_open_pct": "0.021349975365413165",
+          "entry_score": "504.2879425148888",
+          "exit_datetime": "2026-05-14 15:00:00",
+          "exit_price": "188.815",
+          "exit_reason": "target",
+          "shares": "26",
+          "gross_invested": "4854.2",
+          "equal_allocation_target": "5000.0",
+          "planned_risk": "36.65999999999991",
+          "pnl": "54.99000000000024",
+          "r_multiple": "1.50000000000001",
+          "return_pct_on_gross": "0.011328334226031115",
+          "equity_at_entry": "27570.240194500115",
+          "open_gross_after_entry": "4854.2",
+          "open_risk_after_entry": "36.65999999999991",
+          "status": "closed",
+          "entry_time_ct": "2026-05-14 14:50:00",
+          "exit_time_ct": "2026-05-14 15:00:00"
+        },
+        {
+          "strategy": "M1_QUICK_FTFC",
+          "setup": "momentum_prev_high",
+          "symbol": "SOXL",
+          "datetime": "2026-05-14 15:45:00",
+          "date": "2026-05-14",
+          "entry": "188.98",
+          "stop": "188.31",
+          "target": "189.98499999999996",
+          "risk_per_share": "0.6699999999999875",
+          "rr": "1.5",
+          "ftfc_score": "5",
+          "rel_volume": "1.116411888046891",
+          "prior_green_run": "4.0",
+          "p1_close_vs_day_open_pct": "0.03399573000492695",
+          "entry_score": "499.41001100856124",
+          "exit_datetime": "2026-05-14 15:50:00",
+          "exit_price": "188.31",
+          "exit_reason": "stop",
+          "shares": "26",
+          "gross_invested": "4913.48",
+          "equal_allocation_target": "5000.0",
+          "planned_risk": "17.419999999999675",
+          "pnl": "-17.419999999999675",
+          "r_multiple": "-1.0",
+          "return_pct_on_gross": "-0.0035453487141495796",
+          "equity_at_entry": "27625.230194500116",
+          "open_gross_after_entry": "4913.48",
+          "open_risk_after_entry": "17.419999999999675",
+          "status": "closed",
+          "entry_time_ct": "2026-05-14 15:45:00",
+          "exit_time_ct": "2026-05-14 15:50:00"
         }
       ],
       "exit_reasons": [
         {
           "exit_reason": "stop",
-          "trades": 1701,
+          "trades": 1702,
           "win_rate": 0.0,
-          "pnl": -47272.01329700002,
-          "avg_pnl": -27.790719163433288,
-          "avg_pnl_pct": -0.005590150776839654
+          "pnl": -47289.43329700002,
+          "avg_pnl": -27.784625908930682,
+          "avg_pnl_pct": -0.005588963347927482
         },
         {
           "exit_reason": "target",
-          "trades": 1313,
+          "trades": 1314,
           "win_rate": 1.0,
-          "pnl": 50129.2467615,
-          "avg_pnl": 38.17916737357197,
-          "avg_pnl_pct": 0.00768263458870456
+          "pnl": 50184.2367615,
+          "avg_pnl": 38.19196100570776,
+          "avg_pnl_pct": 0.007685344746520939
         },
         {
           "exit_reason": "time",
-          "trades": 1876,
-          "win_rate": 0.6364605543710021,
-          "pnl": 14706.20093000002,
-          "avg_pnl": 7.839126295309179,
-          "avg_pnl_pct": 0.0015773094303792898
+          "trades": 1877,
+          "win_rate": 0.6366542354821524,
+          "pnl": 14713.00673000002,
+          "avg_pnl": 7.838575775173159,
+          "avg_pnl_pct": 0.00157721162409944
         }
       ]
     }

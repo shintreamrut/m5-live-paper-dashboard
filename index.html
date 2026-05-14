@@ -235,6 +235,15 @@ const RULE_GROUPS = [
     "When the order triggers, the paper ledger uses the stop-limit price as the fill price.",
     "This is intended to mimic a resting buy stop-limit order, not a market order placed after the fact."
   ]],
+  ["Pre-Close Staging Mode", [
+    "To reduce live data latency, the recorder can stage orders before the M5 candle officially closes.",
+    "Example: with --preclose-entry-seconds 15, the bot checks the active candle 15 seconds before the M5 close.",
+    "It uses the active candle's current high, low, close, volume, and bullish filters as an estimate of the final candle.",
+    "The paper order is created before the close but activates at the next M5 candle open.",
+    "This is designed to mimic the backtest assumption that the order is already waiting when the next candle begins.",
+    "This mode assumes the last seconds of the candle do not materially change the high, low, green/red status, volume, or filters.",
+    "If the candle changes materially in the last seconds, live paper and backtest can still differ."
+  ]],
   ["Signal Ranking", [
     "Sometimes more than two symbols generate a signal at the same time.",
     "The strategy only wants two active slots, so it ranks signals and keeps the best available candidates.",
