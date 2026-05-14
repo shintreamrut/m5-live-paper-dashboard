@@ -53,13 +53,16 @@ h1 { font-size: 22px; line-height: 1.1; margin: 0 0 4px; letter-spacing: 0; }
 .good { color: var(--good); }
 .bad { color: var(--bad); }
 .warn { color: var(--warn); }
-.main { grid-template-columns: 1.3fr .7fr; margin-top: 14px; }
+.main { grid-template-columns: 1fr; margin-top: 14px; }
 .panel { padding: 14px; min-width: 0; }
 .panel h2 { font-size: 15px; margin: 0 0 10px; }
 .chart { width: 100%; height: 320px; display: block; border: 1px solid var(--line); border-radius: 6px; background: #fbfcfe; }
 .two { grid-template-columns: 1fr 1fr; margin-top: 14px; }
 .tables { margin-top: 14px; }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.page-tabs { margin-top: 16px; margin-bottom: 0; }
+.page { display: none; }
+.page.active { display: block; }
 button {
   border: 1px solid var(--line);
   background: #fff;
@@ -93,15 +96,16 @@ tr:hover td { background: #f9fbff; }
   </div>
 </header>
 <main class="wrap">
+  <div class="tabs page-tabs">
+    <button data-page="livePage" class="active">Live Monitor</button>
+    <button data-page="backtestPage">Backtest Results</button>
+  </div>
+  <section id="livePage" class="page active">
   <section class="grid metrics" id="metrics"></section>
   <section class="grid main">
     <div class="panel">
-      <h2>Equity / P&L</h2>
+      <h2>Equity Curve</h2>
       <canvas id="equityChart" class="chart"></canvas>
-    </div>
-    <div class="panel">
-      <h2>Exposure</h2>
-      <canvas id="riskChart" class="chart"></canvas>
     </div>
   </section>
   <section class="grid two">
@@ -125,6 +129,40 @@ tr:hover td { background: #f9fbff; }
     </div>
     <div id="tabBody"></div>
   </section>
+  </section>
+  <section id="backtestPage" class="page">
+    <section class="grid metrics" id="backtestMetrics"></section>
+    <section class="grid two">
+      <div class="panel">
+        <h2>$10k Compounding Equity</h2>
+        <canvas id="compoundBacktestChart" class="chart"></canvas>
+      </div>
+      <div class="panel">
+        <h2>$10k No Compounding Equity</h2>
+        <canvas id="fixedBacktestChart" class="chart"></canvas>
+      </div>
+    </section>
+    <section class="grid two">
+      <div class="panel">
+        <h2>Compounding Daily Stats</h2>
+        <div id="compoundDaily"></div>
+      </div>
+      <div class="panel">
+        <h2>No Compounding Daily Stats</h2>
+        <div id="fixedDaily"></div>
+      </div>
+    </section>
+    <section class="grid two">
+      <div class="panel">
+        <h2>Compounding Exit Split</h2>
+        <div id="compoundExits"></div>
+      </div>
+      <div class="panel">
+        <h2>No Compounding Exit Split</h2>
+        <div id="fixedExits"></div>
+      </div>
+    </section>
+  </section>
 </main>
 <script>
 let lastPayload = null;
@@ -145,8 +183,8 @@ function num(v, d=2) {
   return Number(v).toLocaleString(undefined, {maximumFractionDigits: d});
 }
 function fmtCell(key, v) {
-  if (["pnl","cash","equity","realized_pnl","unrealized_pnl","open_gross","open_risk","gross_invested","planned_risk","market_value","allocation_target","avg_pnl"].includes(key)) return money(v);
-  if (["return_on_gross","return_on_risk","win_rate","avg_pnl_pct","invested_pct","open_risk_pct","p1_close_vs_day_open_pct"].includes(key)) return pct(v);
+  if (["pnl","cash","equity","realized_pnl","unrealized_pnl","open_gross","open_risk","gross_invested","planned_risk","market_value","allocation_target","avg_pnl","start_equity","end_equity","daily_pnl"].includes(key)) return money(v);
+  if (["return_on_gross","return_on_risk","win_rate","avg_pnl_pct","invested_pct","open_risk_pct","p1_close_vs_day_open_pct","daily_return_pct","max_invested_pct","avg_invested_pct"].includes(key)) return pct(v);
   if (["entry_score"].includes(key)) return num(v, 1);
   if (["entry_price","exit_price","entry_stop","stop","target","risk_per_share","last","bid","ask","mark","p1_close","p1_ema9","p1_ema30","p1_vwap","rel_volume"].includes(key)) return num(v, 3);
   return v ?? "";
@@ -170,6 +208,23 @@ function setMetrics(s) {
   ];
   document.getElementById("metrics").innerHTML = data.map(([label,value,small]) =>
     `<div class="card metric"><div class="label">${label}</div><div class="value ${value.includes('-') ? 'bad' : ''}">${value}</div><div class="small">${small}</div></div>`
+  ).join("");
+}
+function setBacktestMetrics(bt) {
+  const c = bt.compounding10k?.summary || {};
+  const f = bt.fixed10k?.summary || {};
+  const data = [
+    ["Comp Final Equity", money(c.final_equity), pct(c.total_return_pct)],
+    ["Comp Win Rate", pct(c.win_rate), `${num(c.trades, 0)} trades`],
+    ["Comp Profit Factor", num(c.profit_factor, 2), `Max DD ${pct(c.max_drawdown_pct)}`],
+    ["Comp Avg Daily", money(c.avg_daily_pnl), pct(c.avg_daily_return_pct)],
+    ["No Comp Final Equity", money(f.final_equity), pct(f.total_return_pct)],
+    ["No Comp Win Rate", pct(f.win_rate), `${num(f.trades, 0)} trades`],
+    ["No Comp Profit Factor", num(f.profit_factor, 2), `Max DD ${pct(f.max_drawdown_pct)}`],
+    ["No Comp Avg Daily", money(f.avg_daily_pnl), pct(f.avg_daily_return_pct)]
+  ];
+  document.getElementById("backtestMetrics").innerHTML = data.map(([label,value,small]) =>
+    `<div class="card metric"><div class="label">${label}</div><div class="value ${String(value).includes('-') ? 'bad' : ''}">${value}</div><div class="small">${small}</div></div>`
   ).join("");
 }
 function drawLineChart(canvas, series, opts) {
@@ -303,15 +358,30 @@ function render(payload) {
   document.getElementById("dot").style.background = payload.summary.pdt_breach ? "#a86600" : "#0a8f61";
   drawLineChart(document.getElementById("equityChart"), payload.curve, {
     format: money,
-    lines: [{key:"equity", color:"#1d5fd1"}, {key:"daily_pnl", color:"#0a8f61"}]
-  });
-  drawLineChart(document.getElementById("riskChart"), payload.curve.map(p => ({...p, invested_pct: p.equity ? p.open_gross / p.equity : 0, risk_pct: p.equity ? p.open_risk / p.equity : 0})), {
-    format: pct,
-    lines: [{key:"invested_pct", color:"#a86600"}, {key:"risk_pct", color:"#bc2f3a"}]
+    lines: [{key:"equity", color:"#1d5fd1"}]
   });
   document.getElementById("exitTable").innerHTML = table(payload.exit_reasons, ["exit_reason","trades","win_rate","pnl","avg_pnl","avg_pnl_pct"]);
   document.getElementById("dailyTable").innerHTML = table(payload.daily, ["date","trades","wins","losses","win_rate","pnl","symbols"]);
+  renderBacktest(payload.backtest || {});
   renderTab();
+}
+function renderBacktest(bt) {
+  setBacktestMetrics(bt);
+  const comp = bt.compounding10k || {};
+  const fixed = bt.fixed10k || {};
+  drawLineChart(document.getElementById("compoundBacktestChart"), comp.curve || [], {
+    format: money,
+    lines: [{key:"equity", color:"#1d5fd1"}]
+  });
+  drawLineChart(document.getElementById("fixedBacktestChart"), fixed.curve || [], {
+    format: money,
+    lines: [{key:"equity", color:"#0a8f61"}]
+  });
+  const dailyCols = ["date","start_equity","end_equity","daily_pnl","daily_return_pct","trades","max_invested_pct","avg_invested_pct"];
+  document.getElementById("compoundDaily").innerHTML = table(comp.daily || [], dailyCols);
+  document.getElementById("fixedDaily").innerHTML = table(fixed.daily || [], dailyCols);
+  document.getElementById("compoundExits").innerHTML = table(comp.exit_reasons || [], ["exit_reason","trades","win_rate","pnl","avg_pnl","avg_pnl_pct"]);
+  document.getElementById("fixedExits").innerHTML = table(fixed.exit_reasons || [], ["exit_reason","trades","win_rate","pnl","avg_pnl","avg_pnl_pct"]);
 }
 async function refresh() {
   try {
@@ -327,6 +397,13 @@ document.querySelectorAll("button[data-tab]").forEach(btn => {
     activeTab = btn.dataset.tab;
     document.querySelectorAll("button[data-tab]").forEach(b => b.classList.toggle("active", b === btn));
     renderTab();
+  });
+});
+document.querySelectorAll("button[data-page]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("button[data-page]").forEach(b => b.classList.toggle("active", b === btn));
+    document.querySelectorAll(".page").forEach(page => page.classList.toggle("active", page.id === btn.dataset.page));
+    if (lastPayload) render(lastPayload);
   });
 });
 window.addEventListener("resize", () => { if (lastPayload) render(lastPayload); });
