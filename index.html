@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M5 Live Paper Dashboard</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #18202a;
+  --muted: #657386;
+  --line: #d9e0e8;
+  --panel: #ffffff;
+  --page: #f5f7fa;
+  --good: #0a8f61;
+  --bad: #bc2f3a;
+  --accent: #1d5fd1;
+  --warn: #a86600;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--page);
+  color: var(--ink);
+}
+header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(245, 247, 250, 0.94);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(10px);
+}
+.wrap { max-width: 1480px; margin: 0 auto; padding: 18px 22px; }
+.topbar { display: flex; justify-content: space-between; gap: 18px; align-items: center; }
+h1 { font-size: 22px; line-height: 1.1; margin: 0 0 4px; letter-spacing: 0; }
+.sub { color: var(--muted); font-size: 13px; }
+.status { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 4px rgba(10,143,97,.12); }
+.grid { display: grid; gap: 12px; }
+.metrics { grid-template-columns: repeat(8, minmax(130px, 1fr)); margin-top: 16px; }
+.card, .panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+}
+.metric { padding: 12px; min-height: 78px; }
+.label { color: var(--muted); font-size: 12px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.value { font-size: 21px; font-weight: 720; letter-spacing: 0; }
+.small { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.good { color: var(--good); }
+.bad { color: var(--bad); }
+.warn { color: var(--warn); }
+.main { grid-template-columns: 1.3fr .7fr; margin-top: 14px; }
+.panel { padding: 14px; min-width: 0; }
+.panel h2 { font-size: 15px; margin: 0 0 10px; }
+.chart { width: 100%; height: 320px; display: block; border: 1px solid var(--line); border-radius: 6px; background: #fbfcfe; }
+.two { grid-template-columns: 1fr 1fr; margin-top: 14px; }
+.tables { margin-top: 14px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+button {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+button.active { border-color: var(--accent); color: var(--accent); background: #eef5ff; }
+.table-wrap { overflow: auto; max-height: 460px; border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 12px; min-width: 900px; }
+th, td { padding: 8px 9px; border-bottom: 1px solid #e8edf3; text-align: left; white-space: nowrap; }
+th { background: #f8fafc; position: sticky; top: 0; z-index: 1; color: #4b596b; font-weight: 650; }
+tr:hover td { background: #f9fbff; }
+.rules { white-space: pre-wrap; font-size: 12px; line-height: 1.45; color: #334155; max-height: 360px; overflow: auto; }
+@media (max-width: 1100px) {
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .main, .two { grid-template-columns: 1fr; }
+  .topbar { align-items: flex-start; flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap topbar">
+    <div>
+      <h1>M5 Quick FTFC Live Paper Dashboard</h1>
+      <div class="sub">Read-only shared dashboard. Refreshes from the published status.json file. Times shown are CST/CT when available.</div>
+    </div>
+    <div class="status"><span class="dot" id="dot"></span><span id="freshness">Loading...</span></div>
+  </div>
+</header>
+<main class="wrap">
+  <section class="grid metrics" id="metrics"></section>
+  <section class="grid main">
+    <div class="panel">
+      <h2>Equity / P&L</h2>
+      <canvas id="equityChart" class="chart"></canvas>
+    </div>
+    <div class="panel">
+      <h2>Exposure</h2>
+      <canvas id="riskChart" class="chart"></canvas>
+    </div>
+  </section>
+  <section class="grid two">
+    <div class="panel">
+      <h2>Exit Split</h2>
+      <div class="table-wrap"><table id="exitTable"></table></div>
+    </div>
+    <div class="panel">
+      <h2>Daily Summary</h2>
+      <div class="table-wrap"><table id="dailyTable"></table></div>
+    </div>
+  </section>
+  <section class="panel tables">
+    <div class="tabs">
+      <button data-tab="open" class="active">Open Trades</button>
+      <button data-tab="pending">Pending Orders</button>
+      <button data-tab="closed">Recent Closed</button>
+      <button data-tab="signals">Recent Signals</button>
+      <button data-tab="quotes">Quotes</button>
+      <button data-tab="rules">Rules</button>
+    </div>
+    <div id="tabBody"></div>
+  </section>
+</main>
+<script>
+let lastPayload = null;
+let activeTab = "open";
+
+const columns = {
+  open: ["trade_id","signal_id","symbol","entry_time_ct","entry_price","stop","target","shares","gross_invested","planned_risk","market_value","unrealized_pnl","status"],
+  pending: ["signal_id","symbol","setup","created_time_ct","entry_stop","stop","target","risk_per_share","entry_score","ftfc_score","rel_volume","expires_at_et","status"],
+  closed: ["trade_id","signal_id","symbol","entry_time_ct","exit_time_ct","entry_price","exit_price","stop","target","shares","gross_invested","pnl","return_on_gross","exit_reason"],
+  signals: ["signal_id","symbol","completed_m5_time_ct","entry_stop","stop","target","risk_per_share","entry_score","ftfc_score","rel_volume","prior_green_run","p1_close_vs_day_open_pct","status"],
+  quotes: ["snapshot_ct","symbol","last","bid","ask","mark","completed_m5_time_et","p1_close","p1_ema9","p1_ema30","p1_vwap","rel_volume","ftfc_score","momentum_setup"]
+};
+
+function money(v) { return "$" + Number(v || 0).toLocaleString(undefined, {maximumFractionDigits: 2, minimumFractionDigits: 2}); }
+function pct(v) { return (Number(v || 0) * 100).toFixed(2) + "%"; }
+function num(v, d=2) {
+  if (v === "" || v === null || v === undefined || Number.isNaN(Number(v))) return "";
+  return Number(v).toLocaleString(undefined, {maximumFractionDigits: d});
+}
+function fmtCell(key, v) {
+  if (["pnl","cash","equity","realized_pnl","unrealized_pnl","open_gross","open_risk","gross_invested","planned_risk","market_value","allocation_target","avg_pnl"].includes(key)) return money(v);
+  if (["return_on_gross","return_on_risk","win_rate","avg_pnl_pct","invested_pct","open_risk_pct","p1_close_vs_day_open_pct"].includes(key)) return pct(v);
+  if (["entry_score"].includes(key)) return num(v, 1);
+  if (["entry_price","exit_price","entry_stop","stop","target","risk_per_share","last","bid","ask","mark","p1_close","p1_ema9","p1_ema30","p1_vwap","rel_volume"].includes(key)) return num(v, 3);
+  return v ?? "";
+}
+function table(rows, cols) {
+  if (!rows || !rows.length) return '<div class="sub">No rows yet.</div>';
+  return `<div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>` +
+    rows.map(r => `<tr>${cols.map(c => `<td>${fmtCell(c, r[c])}</td>`).join("")}</tr>`).join("") +
+    "</tbody></table></div>";
+}
+function setMetrics(s) {
+  const data = [
+    ["Equity", money(s.equity), pct(s.total_return_pct)],
+    ["Daily P/L", money(s.daily_pnl), ""],
+    ["Realized P/L", money(s.realized_pnl), ""],
+    ["Unrealized P/L", money(s.unrealized_pnl), ""],
+    ["Invested", money(s.open_gross), pct(s.invested_pct)],
+    ["Open Risk", money(s.open_risk), pct(s.open_risk_pct)],
+    ["Win Rate", pct(s.win_rate), `${s.wins}W / ${s.losses}L`],
+    ["Open / Pending", `${s.open_trades} / ${s.pending_orders}`, `${s.trades_today} trades today`]
+  ];
+  document.getElementById("metrics").innerHTML = data.map(([label,value,small]) =>
+    `<div class="card metric"><div class="label">${label}</div><div class="value ${value.includes('-') ? 'bad' : ''}">${value}</div><div class="small">${small}</div></div>`
+  ).join("");
+}
+function drawLineChart(canvas, series, opts) {
+  const ctx = canvas.getContext("2d");
+  const ratio = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.floor(rect.width * ratio);
+  canvas.height = Math.floor(rect.height * ratio);
+  ctx.scale(ratio, ratio);
+  const w = rect.width, h = rect.height;
+  ctx.clearRect(0,0,w,h);
+  const pad = {l: 54, r: 18, t: 18, b: 38};
+  ctx.strokeStyle = "#d9e0e8"; ctx.lineWidth = 1;
+  ctx.font = "11px ui-sans-serif, system-ui"; ctx.fillStyle = "#657386";
+  for (let i=0;i<5;i++) {
+    const y = pad.t + (h-pad.t-pad.b)*i/4;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(w-pad.r,y); ctx.stroke();
+  }
+  if (!series.length) return;
+  const xs = series.map((_,i)=>i);
+  const allY = [];
+  opts.lines.forEach(line => series.forEach(p => allY.push(Number(p[line.key] || 0))));
+  let minY = Math.min(...allY), maxY = Math.max(...allY);
+  if (minY === maxY) { minY -= 1; maxY += 1; }
+  const x = i => pad.l + (w-pad.l-pad.r) * (series.length <= 1 ? 0 : i/(series.length-1));
+  const y = v => h-pad.b - (h-pad.t-pad.b) * ((v-minY)/(maxY-minY));
+  [minY, maxY].forEach((v, idx) => {
+    ctx.fillText(opts.format ? opts.format(v) : num(v), 6, y(v)+4);
+  });
+  opts.lines.forEach(line => {
+    ctx.strokeStyle = line.color; ctx.lineWidth = 2;
+    ctx.beginPath();
+    series.forEach((p,i) => {
+      const px = x(i), py = y(Number(p[line.key] || 0));
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+  });
+  const tickCount = Math.min(6, series.length);
+  for (let i=0;i<tickCount;i++) {
+    const idx = Math.floor((series.length-1) * i / Math.max(tickCount-1, 1));
+    const label = (series[idx].time || "").slice(5,16);
+    ctx.fillStyle = "#657386";
+    ctx.fillText(label, Math.min(x(idx), w-88), h-14);
+  }
+}
+function renderTab() {
+  const body = document.getElementById("tabBody");
+  if (!lastPayload) return;
+  if (activeTab === "rules") {
+    body.innerHTML = `<div class="rules">Strategy: M5 Quick FTFC Momentum, long-only leveraged ETF paper trader
+
+Universe:
+BOIL, KOLD, LABD, LABU, MSTU, MSTZ, NVDL, SOXL, SOXS, SPXU, SQQQ, TQQQ, TSLL, UPRO
+
+Signal timing:
+1. Signal generation runs 2 seconds after each completed M5 candle.
+2. Only completed regular-session M5 candles are used for signal creation.
+3. The active/incomplete M5 candle is not used to create a signal.
+
+Long entry setup:
+1. Prior completed M5 candle must be green: close > open.
+2. Prior completed M5 close must be above EMA9.
+3. Relative volume must be >= 1.0.
+4. FTFC score must be >= 4.
+5. FTFC score checks:
+   - M5 close above day open.
+   - M5 close above VWAP.
+   - M5 close above EMA30.
+   - M5 close above EMA9.
+   - Completed H1 context is bullish enough, meaning at least 2 of:
+     H1 green, H1 close above H1 day open, H1 close above H1 VWAP.
+6. Extension filter must pass:
+   - Prior green-run must be <= 4.
+   - Prior M5 close must not be more than 5% above the day open.
+7. M5 candle risk must be <= 2% of entry price.
+
+Entry order:
+1. If a valid signal appears, the bot creates a paper BUY STOP-LIMIT order.
+2. Entry stop-limit price = prior completed M5 high.
+3. The paper order expires after 5 minutes if not triggered.
+4. The paper ledger fills at the stop-limit price when price trades through that level.
+5. Example: if prior M5 high is 16.25, the paper entry is 16.25, not the later quote.
+
+Signal ranking:
+1. When more signals appear than available slots, choose the highest-ranked signals.
+2. Ranking score rewards FTFC strength and relative volume.
+3. Ranking score penalizes wide candle risk, prior green-run extension, and distance above day open.
+4. The same entry_score logic is used by the backtest and live paper recorder.
+
+Portfolio allocation:
+1. Initial paper capital is $10,000 unless overridden at runtime.
+2. Max gross exposure is 100% of current paper equity.
+3. Fixed-slot allocation uses 2 slots.
+4. Each new trade targets about 50% of current paper equity.
+5. If both slots are full, no new entry orders are kept.
+6. Daily trade cap is effectively uncapped unless overridden.
+
+Exit rules:
+1. Stop loss = prior completed M5 low.
+2. Target = 1.5R by default.
+3. R = entry price - stop price.
+4. Example: entry 16.25, stop 16.05, risk 0.20, target = 16.25 + 1.5 * 0.20 = 16.55.
+5. Target and stop are treated as pre-planned paper OCO orders.
+6. If stop is touched first, exit reason is stop.
+7. If target is touched first, exit reason is target.
+8. If neither target nor stop is reached within 15 minutes, exit reason is time.
+9. Near end of day, open trades can be closed with eod exit handling.
+10. The fast order monitor checks pending entries and open OCO exits between M5 signal cycles.
+
+Important paper-trading note:
+This dashboard and recorder do not place real Schwab orders. They mimic stop-limit entries and OCO exits using Schwab market data.
+
+This dashboard reads files from:
+${lastPayload.output_dir}</div>`;
+    return;
+  }
+  const rows = {
+    open: lastPayload.open_trades,
+    pending: lastPayload.pending_orders,
+    closed: lastPayload.recent_trades,
+    signals: lastPayload.recent_signals,
+    quotes: lastPayload.recent_quotes
+  }[activeTab];
+  body.innerHTML = table(rows, columns[activeTab]);
+}
+function render(payload) {
+  lastPayload = payload;
+  setMetrics(payload.summary);
+  document.getElementById("freshness").textContent = `Updated ${payload.generated_at}; files ${payload.latest_file_update || "not found"}`;
+  document.getElementById("dot").style.background = payload.summary.pdt_breach ? "#a86600" : "#0a8f61";
+  drawLineChart(document.getElementById("equityChart"), payload.curve, {
+    format: money,
+    lines: [{key:"equity", color:"#1d5fd1"}, {key:"daily_pnl", color:"#0a8f61"}]
+  });
+  drawLineChart(document.getElementById("riskChart"), payload.curve.map(p => ({...p, invested_pct: p.equity ? p.open_gross / p.equity : 0, risk_pct: p.equity ? p.open_risk / p.equity : 0})), {
+    format: pct,
+    lines: [{key:"invested_pct", color:"#a86600"}, {key:"risk_pct", color:"#bc2f3a"}]
+  });
+  document.getElementById("exitTable").innerHTML = table(payload.exit_reasons, ["exit_reason","trades","win_rate","pnl","avg_pnl","avg_pnl_pct"]);
+  document.getElementById("dailyTable").innerHTML = table(payload.daily, ["date","trades","wins","losses","win_rate","pnl","symbols"]);
+  renderTab();
+}
+async function refresh() {
+  try {
+    const res = await fetch("status.json?ts=" + Date.now());
+    render(await res.json());
+  } catch (err) {
+    document.getElementById("freshness").textContent = "Dashboard API not responding";
+    document.getElementById("dot").style.background = "#bc2f3a";
+  }
+}
+document.querySelectorAll("button[data-tab]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    activeTab = btn.dataset.tab;
+    document.querySelectorAll("button[data-tab]").forEach(b => b.classList.toggle("active", b === btn));
+    renderTab();
+  });
+});
+window.addEventListener("resize", () => { if (lastPayload) render(lastPayload); });
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>
