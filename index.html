@@ -359,7 +359,7 @@ function drawLineChart(canvas, series, opts) {
   ctx.scale(ratio, ratio);
   const w = rect.width, h = rect.height;
   ctx.clearRect(0,0,w,h);
-  const pad = {l: 54, r: 18, t: 18, b: 38};
+  const pad = {l: 54, r: 112, t: 18, b: 38};
   ctx.strokeStyle = "#d9e0e8"; ctx.lineWidth = 1;
   ctx.font = "11px ui-sans-serif, system-ui"; ctx.fillStyle = "#657386";
   for (let i=0;i<5;i++) {
@@ -367,11 +367,22 @@ function drawLineChart(canvas, series, opts) {
     ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(w-pad.r,y); ctx.stroke();
   }
   if (!series.length) return;
-  const xs = series.map((_,i)=>i);
   const allY = [];
-  opts.lines.forEach(line => series.forEach(p => allY.push(Number(p[line.key] || 0))));
+  opts.lines.forEach(line => series.forEach(p => {
+    const v = Number(p[line.key]);
+    if (Number.isFinite(v)) allY.push(v);
+  }));
+  if (!allY.length) return;
   let minY = Math.min(...allY), maxY = Math.max(...allY);
-  if (minY === maxY) { minY -= 1; maxY += 1; }
+  if (minY === maxY) {
+    const basis = Math.abs(minY) || 1;
+    minY -= basis * 0.1;
+    maxY += basis * 0.1;
+  } else {
+    const padY = (maxY - minY) * 0.10;
+    minY -= padY;
+    maxY += padY;
+  }
   const x = i => pad.l + (w-pad.l-pad.r) * (series.length <= 1 ? 0 : i/(series.length-1));
   const y = v => h-pad.b - (h-pad.t-pad.b) * ((v-minY)/(maxY-minY));
   [minY, maxY].forEach((v, idx) => {
@@ -380,11 +391,23 @@ function drawLineChart(canvas, series, opts) {
   opts.lines.forEach(line => {
     ctx.strokeStyle = line.color; ctx.lineWidth = 2;
     ctx.beginPath();
+    let started = false;
     series.forEach((p,i) => {
-      const px = x(i), py = y(Number(p[line.key] || 0));
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      const v = Number(p[line.key]);
+      if (!Number.isFinite(v)) return;
+      const px = x(i), py = y(v);
+      if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
     });
     ctx.stroke();
+    const lastPoint = [...series].reverse().find(p => Number.isFinite(Number(p[line.key])));
+    if (lastPoint) {
+      const lastIndex = series.lastIndexOf(lastPoint);
+      const v = Number(lastPoint[line.key]);
+      const label = `${line.name || line.key}: ${opts.format ? opts.format(v) : num(v)}`;
+      const ly = Math.max(pad.t + 10, Math.min(h - pad.b - 4, y(v)));
+      ctx.fillStyle = line.color;
+      ctx.fillText(label, x(lastIndex) + 8, ly);
+    }
   });
   const tickCount = Math.min(6, series.length);
   for (let i=0;i<tickCount;i++) {
@@ -413,7 +436,7 @@ function render(payload) {
   document.getElementById("dot").style.background = payload.summary.pdt_breach ? "#a86600" : "#0a8f61";
   drawLineChart(document.getElementById("equityChart"), payload.curve, {
     format: money,
-    lines: [{key:"equity", color:"#1d5fd1"}]
+    lines: [{key:"equity", color:"#1d5fd1", name:"Equity"}]
   });
   document.getElementById("exitTable").innerHTML = table(payload.exit_reasons, ["exit_reason","trades","win_rate","pnl","avg_pnl","avg_pnl_pct"]);
   document.getElementById("dailyTable").innerHTML = table(payload.daily, ["date","trades","wins","losses","win_rate","pnl","symbols"]);
@@ -428,11 +451,17 @@ function renderBacktest(bt) {
   setBacktestMetrics("fixedMetrics", fixed);
   drawLineChart(document.getElementById("compoundBacktestChart"), comp.curve || [], {
     format: money,
-    lines: [{key:"equity", color:"#1d5fd1"}]
+    lines: [
+      {key:"equity", color:"#1d5fd1", name:"Strategy"},
+      {key:"spy_equity", color:"#a86600", name:"SPY"}
+    ]
   });
   drawLineChart(document.getElementById("fixedBacktestChart"), fixed.curve || [], {
     format: money,
-    lines: [{key:"equity", color:"#0a8f61"}]
+    lines: [
+      {key:"equity", color:"#0a8f61", name:"Strategy"},
+      {key:"spy_equity", color:"#a86600", name:"SPY"}
+    ]
   });
   const dailyCols = ["date","start_equity","end_equity","daily_pnl","daily_return_pct","trades","max_invested_pct","avg_invested_pct"];
   document.getElementById("compoundDaily").innerHTML = table(comp.daily || [], dailyCols);
