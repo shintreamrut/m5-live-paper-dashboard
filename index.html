@@ -376,35 +376,54 @@ function drawLineChart(canvas, series, opts) {
     ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(w-pad.r,y); ctx.stroke();
   }
   if (!series.length) return;
-  const allY = [];
-  opts.lines.forEach(line => series.forEach(p => {
-    const v = Number(p[line.key]);
-    if (Number.isFinite(v)) allY.push(v);
-  }));
-  if (!allY.length) return;
-  let minY = Math.min(...allY), maxY = Math.max(...allY);
-  if (minY === maxY) {
-    const basis = Math.abs(minY) || 1;
-    minY -= basis * 0.1;
-    maxY += basis * 0.1;
-  } else {
-    const padY = (maxY - minY) * 0.10;
-    minY -= padY;
-    maxY += padY;
+  function scaleFor(axis) {
+    const vals = [];
+    opts.lines.filter(line => (line.axis || "left") === axis).forEach(line => series.forEach(p => {
+      const v = Number(p[line.key]);
+      if (Number.isFinite(v)) vals.push(v);
+    }));
+    if (!vals.length) return null;
+    let min = Math.min(...vals), max = Math.max(...vals);
+    if (min === max) {
+      const basis = Math.abs(min) || 1;
+      min -= basis * 0.1;
+      max += basis * 0.1;
+    } else {
+      const padY = (max - min) * 0.10;
+      min -= padY;
+      max += padY;
+    }
+    return {min, max};
   }
+  const scales = {left: scaleFor("left"), right: scaleFor("right")};
+  if (!scales.left && !scales.right) return;
   const x = i => pad.l + (w-pad.l-pad.r) * (series.length <= 1 ? 0 : i/(series.length-1));
-  const y = v => h-pad.b - (h-pad.t-pad.b) * ((v-minY)/(maxY-minY));
-  [minY, maxY].forEach((v, idx) => {
-    ctx.fillText(opts.format ? opts.format(v) : num(v), 6, y(v)+4);
-  });
+  const yFor = (v, axis) => {
+    const s = scales[axis] || scales.left || scales.right;
+    return h-pad.b - (h-pad.t-pad.b) * ((v-s.min)/(s.max-s.min));
+  };
+  if (scales.left) {
+    [scales.left.min, scales.left.max].forEach(v => {
+      ctx.fillStyle = "#657386";
+      ctx.fillText(opts.leftFormat ? opts.leftFormat(v) : (opts.format ? opts.format(v) : num(v)), 6, yFor(v, "left")+4);
+    });
+  }
+  if (scales.right) {
+    [scales.right.min, scales.right.max].forEach(v => {
+      ctx.fillStyle = "#657386";
+      const label = opts.rightFormat ? opts.rightFormat(v) : (opts.format ? opts.format(v) : num(v));
+      ctx.fillText(label, w-pad.r+10, yFor(v, "right")+4);
+    });
+  }
   opts.lines.forEach(line => {
+    const axis = line.axis || "left";
     ctx.strokeStyle = line.color; ctx.lineWidth = 2;
     ctx.beginPath();
     let started = false;
     series.forEach((p,i) => {
       const v = Number(p[line.key]);
       if (!Number.isFinite(v)) return;
-      const px = x(i), py = y(v);
+      const px = x(i), py = yFor(v, axis);
       if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
     });
     ctx.stroke();
@@ -412,8 +431,9 @@ function drawLineChart(canvas, series, opts) {
     if (lastPoint) {
       const lastIndex = series.lastIndexOf(lastPoint);
       const v = Number(lastPoint[line.key]);
-      const label = `${line.name || line.key}: ${opts.format ? opts.format(v) : num(v)}`;
-      const ly = Math.max(pad.t + 10, Math.min(h - pad.b - 4, y(v)));
+      const formatter = axis === "right" && opts.rightFormat ? opts.rightFormat : (opts.leftFormat || opts.format);
+      const label = `${line.name || line.key}: ${formatter ? formatter(v) : num(v)}`;
+      const ly = Math.max(pad.t + 10, Math.min(h - pad.b - 4, yFor(v, axis)));
       ctx.fillStyle = line.color;
       ctx.fillText(label, x(lastIndex) + 8, ly);
     }
@@ -444,7 +464,7 @@ function render(payload) {
   document.getElementById("freshness").textContent = `Updated ${payload.generated_at}; files ${payload.latest_file_update || "not found"}`;
   document.getElementById("dot").style.background = payload.summary.pdt_breach ? "#a86600" : "#0a8f61";
   drawLineChart(document.getElementById("equityChart"), payload.curve, {
-    format: money,
+    leftFormat: money,
     lines: [{key:"equity", color:"#1d5fd1", name:"Equity"}]
   });
   document.getElementById("exitTable").innerHTML = table(payload.exit_reasons, ["exit_reason","trades","win_rate","pnl","avg_pnl","avg_pnl_pct"]);
@@ -459,17 +479,19 @@ function renderBacktest(bt) {
   setBacktestMetrics("compoundMetrics", comp);
   setBacktestMetrics("fixedMetrics", fixed);
   drawLineChart(document.getElementById("compoundBacktestChart"), comp.curve || [], {
-    format: money,
+    leftFormat: money,
+    rightFormat: money,
     lines: [
       {key:"equity", color:"#1d5fd1", name:"Strategy"},
-      {key:"spy_equity", color:"#a86600", name:"SPY"}
+      {key:"spy_price", color:"#a86600", name:"SPY", axis:"right"}
     ]
   });
   drawLineChart(document.getElementById("fixedBacktestChart"), fixed.curve || [], {
-    format: money,
+    leftFormat: money,
+    rightFormat: money,
     lines: [
       {key:"equity", color:"#0a8f61", name:"Strategy"},
-      {key:"spy_equity", color:"#a86600", name:"SPY"}
+      {key:"spy_price", color:"#a86600", name:"SPY", axis:"right"}
     ]
   });
   const dailyCols = ["date","start_equity","end_equity","daily_pnl","daily_return_pct","trades","max_invested_pct","avg_invested_pct"];
